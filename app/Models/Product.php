@@ -14,8 +14,20 @@ class Product extends Model
         'category_id', 
         'material', 
         'weight', 
-        'dimensions'
+        'dimensions',
+        'stock',
+        'sku'
     ];
+
+    // Check if product is out of stock
+    public function isOutOfStock() {
+        return $this->stock <= 0;
+    }
+
+    // Check if product is low in stock (less than or equal to 5 items)
+    public function isLowStock() {
+        return $this->stock > 0 && $this->stock <= 5;
+    }
 
     // Get the category for this product
     public function category() {

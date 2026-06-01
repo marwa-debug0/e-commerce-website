@@ -45,6 +45,18 @@ class CheckoutController extends Controller
                 ->with('error', 'Your cart is empty.');
         }
 
+        // Validate stock availability
+        foreach ($cartItems as $item) {
+            if ($item->product->isOutOfStock()) {
+                return redirect()->route('cart.index')
+                    ->with('error', "Product '{$item->product->title}' is out of stock.");
+            }
+            if ($item->product->stock < $item->quantity) {
+                return redirect()->route('cart.index')
+                    ->with('error', "Only {$item->product->stock} items of '{$item->product->title}' are in stock. You have {$item->quantity} in your cart.");
+            }
+        }
+
         $coupon   = session('coupon');
         $subtotal = $cartItems->sum(fn ($i) => $i->product->price * $i->quantity);
         
@@ -94,6 +106,18 @@ class CheckoutController extends Controller
                 ->with('error', 'Your cart is empty.');
         }
 
+        // Validate stock availability prior to transaction
+        foreach ($cartItems as $item) {
+            if ($item->product->isOutOfStock()) {
+                return redirect()->route('cart.index')
+                    ->with('error', "Product '{$item->product->title}' is out of stock.");
+            }
+            if ($item->product->stock < $item->quantity) {
+                return redirect()->route('cart.index')
+                    ->with('error', "Only {$item->product->stock} items of '{$item->product->title}' are in stock.");
+            }
+        }
+
         $coupon   = session('coupon');
         $subtotal = $cartItems->sum(fn ($i) => $i->product->price * $i->quantity);
         
@@ -130,8 +154,14 @@ class CheckoutController extends Controller
                 'discount_amount'  => $discount,
             ]);
 
-            // Save order items
+            // Save order items & decrement stock inside transaction
             foreach ($cartItems as $item) {
+                $product = $item->product;
+                if ($product->stock < $item->quantity) {
+                    throw new \Exception("Insufficient stock for product '{$product->title}'.");
+                }
+                $product->decrement('stock', $item->quantity);
+
                 $order->orderItems()->create([
                     'product_id' => $item->product_id,
                     'quantity'   => $item->quantity,

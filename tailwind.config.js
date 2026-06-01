@@ -28,6 +28,9 @@ export default {
                 'bauhaus-black': '#111111',
                 'bauhaus-gray': '#e5e5e5',
                 'bauhaus-white': '#ffffff',
+                'bauhaus-red': '#dd3333',
+                'bauhaus-blue': '#2244aa',
+                'bauhaus-yellow': '#ffcc00',
             }
         },
     },
